@@ -1,10 +1,12 @@
 package com.example.coursemanagement.repository;
 
+import com.example.coursemanagement.exception.ResourceNotFoundException;
 import com.example.coursemanagement.model.Course;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class CourseRepository {
@@ -21,11 +23,10 @@ public class CourseRepository {
         return courses;
     }
 
-    public Course findById(Long id) {
+    public Optional<Course> findById(Long id) {
         return courses.stream()
                 .filter(course -> course.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     public Course create(Course course) {
@@ -35,20 +36,20 @@ public class CourseRepository {
     }
 
     public Course update(Long id, Course updatedCourse) {
-        Course existing = findById(id);
-        if (existing != null) {
-            existing.setTitle(updatedCourse.getTitle());
-            existing.setStatus(updatedCourse.getStatus());
-            existing.setInstructorId(updatedCourse.getInstructorId());
-        }
+        Course existing = findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khóa học với ID: " + id));
+
+        existing.setTitle(updatedCourse.getTitle());
+        existing.setStatus(updatedCourse.getStatus());
+        existing.setInstructorId(updatedCourse.getInstructorId());
         return existing;
     }
 
     public Course deleteById(Long id) {
-        Course existing = findById(id);
-        if (existing != null) {
-            courses.remove(existing);
-        }
+        Course existing = findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khóa học để xóa với ID: " + id));
+
+        courses.remove(existing);
         return existing;
     }
 }

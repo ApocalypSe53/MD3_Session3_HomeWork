@@ -1,6 +1,7 @@
 package com.example.coursemanagement.controller;
 
 import com.example.coursemanagement.dto.ApiResponse;
+import com.example.coursemanagement.exception.ResourceNotFoundException;
 import com.example.coursemanagement.model.Course;
 import com.example.coursemanagement.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +30,13 @@ public class CourseController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Course>> getById(@PathVariable Long id) {
-        Course course = courseService.getCourseById(id);
-        if (course != null) {
+        try {
+            Course course = courseService.getCourseById(id);
             return ResponseEntity.ok(ApiResponse.success("Tìm thấy khóa học phù hợp", course));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error("Không tìm thấy khóa học với ID: " + id));
     }
 
     @PostMapping
@@ -50,21 +52,23 @@ public class CourseController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Course>> update(@PathVariable Long id, @RequestBody Course course) {
-        Course updated = courseService.updateCourse(id, course);
-        if (updated != null) {
+        try {
+            Course updated = courseService.updateCourse(id, course);
             return ResponseEntity.ok(ApiResponse.success("Cập nhật khóa học thành công", updated));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error("Không tìm thấy khóa học để cập nhật"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Course>> delete(@PathVariable Long id) {
-        Course deleted = courseService.deleteCourseById(id);
-        if (deleted != null) {
+        try {
+            Course deleted = courseService.deleteCourseById(id);
             return ResponseEntity.ok(ApiResponse.success("Xóa khóa học thành công", deleted));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error("Không tìm thấy khóa học cần xóa"));
     }
 }

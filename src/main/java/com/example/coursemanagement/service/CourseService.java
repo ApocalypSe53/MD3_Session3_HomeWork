@@ -1,5 +1,6 @@
 package com.example.coursemanagement.service;
 
+import com.example.coursemanagement.exception.ResourceNotFoundException;
 import com.example.coursemanagement.model.Course;
 import com.example.coursemanagement.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,8 @@ public class CourseService {
     }
 
     public Course getCourseById(Long id) {
-        return courseRepository.findById(id);
+        return courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khóa học với ID: " + id));
     }
 
     public Course createCourse(Course course) {
