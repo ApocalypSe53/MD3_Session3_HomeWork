@@ -1,5 +1,6 @@
 package com.example.coursemanagement.controller;
 
+import com.example.coursemanagement.dto.ApiResponse;
 import com.example.coursemanagement.model.Course;
 import com.example.coursemanagement.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,33 +22,49 @@ public class CourseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Course>> getAll() {
-        return ResponseEntity.ok(courseService.getAllCourses());
+    public ResponseEntity<ApiResponse<List<Course>>> getAll() {
+        List<Course> list = courseService.getAllCourses();
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách khóa học thành công", list));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Course> getById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Course>> getById(@PathVariable Long id) {
         Course course = courseService.getCourseById(id);
-        return (course != null) ? ResponseEntity.ok(course) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (course != null) {
+            return ResponseEntity.ok(ApiResponse.success("Tìm thấy khóa học phù hợp", course));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Không tìm thấy khóa học với ID: " + id));
     }
 
     @PostMapping
-    public ResponseEntity<Course> create(@RequestBody Course course) {
+    public ResponseEntity<ApiResponse<Course>> create(@RequestBody Course course) {
         if (course.getTitle() == null || course.getInstructorId() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Dữ liệu không hợp lệ (Thiếu Title hoặc Instructor ID)"));
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(courseService.createCourse(course));
+        Course created = courseService.createCourse(course);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Khởi tạo khóa học thành công", created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Course> update(@PathVariable Long id, @RequestBody Course course) {
-        Course updatedCourse = courseService.updateCourse(id, course);
-        return (updatedCourse != null) ? ResponseEntity.ok(updatedCourse) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<ApiResponse<Course>> update(@PathVariable Long id, @RequestBody Course course) {
+        Course updated = courseService.updateCourse(id, course);
+        if (updated != null) {
+            return ResponseEntity.ok(ApiResponse.success("Cập nhật khóa học thành công", updated));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Không tìm thấy khóa học để cập nhật"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Course> delete(@PathVariable Long id) {
-        Course deletedCourse = courseService.deleteCourseById(id);
-        return (deletedCourse != null) ? ResponseEntity.ok(deletedCourse) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<ApiResponse<Course>> delete(@PathVariable Long id) {
+        Course deleted = courseService.deleteCourseById(id);
+        if (deleted != null) {
+            return ResponseEntity.ok(ApiResponse.success("Xóa khóa học thành công", deleted));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Không tìm thấy khóa học cần xóa"));
     }
 }

@@ -1,5 +1,6 @@
 package com.example.coursemanagement.controller;
 
+import com.example.coursemanagement.dto.ApiResponse;
 import com.example.coursemanagement.model.Enrollment;
 import com.example.coursemanagement.service.EnrollmentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,33 +22,49 @@ public class EnrollmentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Enrollment>> getAll() {
-        return ResponseEntity.ok(enrollmentService.getAllEnrollments());
+    public ResponseEntity<ApiResponse<List<Enrollment>>> getAll() {
+        List<Enrollment> list = enrollmentService.getAllEnrollments();
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách lượt đăng ký thành công", list));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Enrollment> getById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Enrollment>> getById(@PathVariable Long id) {
         Enrollment enrollment = enrollmentService.getEnrollmentById(id);
-        return (enrollment != null) ? ResponseEntity.ok(enrollment) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (enrollment != null) {
+            return ResponseEntity.ok(ApiResponse.success("Tìm thấy thông tin đăng ký", enrollment));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Không tìm thấy lượt đăng ký với ID: " + id));
     }
 
     @PostMapping
-    public ResponseEntity<Enrollment> create(@RequestBody Enrollment enrollment) {
+    public ResponseEntity<ApiResponse<Enrollment>> create(@RequestBody Enrollment enrollment) {
         if (enrollment.getStudentName() == null || enrollment.getCourseId() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Dữ liệu không hợp lệ (Thiếu tên học viên hoặc Course ID)"));
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(enrollmentService.createEnrollment(enrollment));
+        Enrollment created = enrollmentService.createEnrollment(enrollment);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Đăng ký khóa học thành công", created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Enrollment> update(@PathVariable Long id, @RequestBody Enrollment enrollment) {
-        Enrollment updatedEnrollment = enrollmentService.updateEnrollment(id, enrollment);
-        return (updatedEnrollment != null) ? ResponseEntity.ok(updatedEnrollment) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<ApiResponse<Enrollment>> update(@PathVariable Long id, @RequestBody Enrollment enrollment) {
+        Enrollment updated = enrollmentService.updateEnrollment(id, enrollment);
+        if (updated != null) {
+            return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin đăng ký thành công", updated));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Không tìm thấy thông tin đăng ký để cập nhật"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Enrollment> delete(@PathVariable Long id) {
-        Enrollment deletedEnrollment = enrollmentService.deleteEnrollmentById(id);
-        return (deletedEnrollment != null) ? ResponseEntity.ok(deletedEnrollment) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<ApiResponse<Enrollment>> delete(@PathVariable Long id) {
+        Enrollment deleted = enrollmentService.deleteEnrollmentById(id);
+        if (deleted != null) {
+            return ResponseEntity.ok(ApiResponse.success("Hủy lượt đăng ký học thành công", deleted));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Không tìm thấy thông tin lượt đăng ký cần xóa"));
     }
 }
