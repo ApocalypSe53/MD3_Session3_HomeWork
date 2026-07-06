@@ -8,16 +8,47 @@ import java.util.List;
 
 @Repository
 public class CourseRepository {
-    private final List<Course> course = new ArrayList<>();
+    private final List<Course> courses = new ArrayList<>();
+    private Long currentId = 3L;
 
     public CourseRepository() {
-        course.add(new Course(1L, "Lập trình Java Spring Boot", "ACTIVE", 101L));
-        course.add(new Course(2L, "Thiết kế Web với ReactJS", "ACTIVE", 102L));
-        course.add(new Course(3L, "Cấu trúc dữ liệu và Giải thuật", "PENDING", 101L));
-        course.add(new Course(4L, "Trí tuệ nhân tạo cơ bản", "CLOSED", 103L));
+        // Giả sử instructorId 1 và 2 là của các giảng viên đã tạo ở bài trước
+        courses.add(new Course(1L, "Lập trình Java cơ bản", "Active", 1L));
+        courses.add(new Course(2L, "Thiết kế Web với React", "Draft", 2L));
     }
 
     public List<Course> findAll() {
+        return courses;
+    }
+
+    public Course findById(Long id) {
+        return courses.stream()
+                .filter(course -> course.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Course create(Course course) {
+        course.setId(currentId++);
+        courses.add(course);
         return course;
+    }
+
+    public Course update(Long id, Course updatedCourse) {
+        Course existing = findById(id);
+        if (existing != null) {
+            existing.setTitle(updatedCourse.getTitle());
+            existing.setStatus(updatedCourse.getStatus());
+            existing.setInstructorId(updatedCourse.getInstructorId());
+        }
+        return existing;
+    }
+
+    public Course deleteById(Long id) {
+        Course existing = findById(id);
+        if (existing != null) {
+            courses.remove(existing);
+        }
+        return existing;
     }
 }
